@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart = 2.8
+
 import 'dart:async';
 import 'dart:typed_data';
 
@@ -236,8 +238,7 @@ class WebAssetServer implements AssetReader {
     // load the through the isolate APIs.
     final Directory directory =
         await _loadDwdsDirectory(globals.fs, globals.logger);
-    final shelf.Middleware middleware =
-        (FutureOr<shelf.Response> Function(shelf.Request) innerHandler) {
+    shelf.Handler middleware(FutureOr<shelf.Response> Function(shelf.Request) innerHandler) {
       return (shelf.Request request) async {
         if (request.url.path.endsWith('dwds/src/injected/client.js')) {
           final Uri uri = directory.uri.resolve('src/injected/client.js');
@@ -249,7 +250,7 @@ class WebAssetServer implements AssetReader {
         }
         return innerHandler(request);
       };
-    };
+    }
 
     logging.Logger.root.onRecord.listen((logging.LogRecord event) {
       globals.printTrace('${event.loggerName}: ${event.message}');

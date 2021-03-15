@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart = 2.8
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -166,7 +168,7 @@ void main() {
       extraArguments: const <String>['--verbose']);
     final String stdout = result.stdout as String;
     if ((!stdout.contains('+1: All tests passed')) ||
-        (!stdout.contains('test 0: starting shell process')) ||
+        (!stdout.contains('test 0: Starting flutter_tester process with command')) ||
         (!stdout.contains('test 0: deleting temporary directory')) ||
         (!stdout.contains('test 0: finished')) ||
         (!stdout.contains('test package returned with exit code 0'))) {
@@ -183,7 +185,7 @@ void main() {
       extraArguments: const <String>['--verbose']);
     final String stdout = result.stdout as String;
     if ((!stdout.contains('+2: All tests passed')) ||
-        (!stdout.contains('test 0: starting shell process')) ||
+        (!stdout.contains('test 0: Starting flutter_tester process with command')) ||
         (!stdout.contains('test 0: deleting temporary directory')) ||
         (!stdout.contains('test 0: finished')) ||
         (!stdout.contains('test package returned with exit code 0'))) {

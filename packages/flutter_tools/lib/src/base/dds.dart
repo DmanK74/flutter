@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart = 2.8
+
 import 'dart:async';
 
 import 'package:dds/dds.dart' as dds;
@@ -93,5 +95,5 @@ class DartDevelopmentService {
     }
   }
 
-  Future<void> shutdown() async => await _ddsInstance?.shutdown();
+  Future<void> shutdown() async => _ddsInstance?.shutdown();
 }

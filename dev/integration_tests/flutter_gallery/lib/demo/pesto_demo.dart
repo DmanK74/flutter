@@ -10,7 +10,7 @@ class PestoDemo extends StatelessWidget {
   static const String routeName = '/pesto';
 
   @override
-  Widget build(BuildContext context) => PestoHome();
+  Widget build(BuildContext context) => const PestoHome();
 }
 
 
@@ -29,6 +29,8 @@ final ThemeData _kTheme = ThemeData(
 );
 
 class PestoHome extends StatelessWidget {
+  const PestoHome({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return const RecipeGridPage(recipes: kPestoRecipes);
@@ -36,6 +38,8 @@ class PestoHome extends StatelessWidget {
 }
 
 class PestoFavorites extends StatelessWidget {
+  const PestoFavorites({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return RecipeGridPage(recipes: _favoriteRecipes.toList());
@@ -167,7 +171,7 @@ class _RecipeGridPageState extends State<RecipeGridPage> {
   void showFavoritesPage(BuildContext context) {
     Navigator.push(context, MaterialPageRoute<void>(
       settings: const RouteSettings(name: '/pesto/favorites'),
-      builder: (BuildContext context) => PestoFavorites(),
+      builder: (BuildContext context) => const PestoFavorites(),
     ));
   }
 
@@ -185,7 +189,7 @@ class _RecipeGridPageState extends State<RecipeGridPage> {
 }
 
 class PestoLogo extends StatefulWidget {
-  const PestoLogo({this.height, this.t});
+  const PestoLogo({Key? key, this.height, this.t}) : super(key: key);
 
   final double? height;
   final double? t;
@@ -369,7 +373,7 @@ class _RecipePageState extends State<RecipePage> {
                   background: DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        begin: Alignment(0.0, -1.0),
+                        begin: Alignment.topCenter,
                         end: Alignment(0.0, -0.2),
                         colors: <Color>[Color(0x60000000), Color(0x00000000)],
                       ),

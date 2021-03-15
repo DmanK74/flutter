@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart = 2.8
+
 import 'dart:async';
 
 import 'package:flutter_tools/src/base/common.dart';
@@ -113,7 +115,7 @@ void main() {
   });
 
   testUsingContext('VmService registers flutterMemoryInfo service', () async {
-    final MockDevice mockDevice = MockDevice();
+    final FakeDevice mockDevice = FakeDevice();
 
     final MockVMService mockVMService = MockVMService();
     setUpVmService(
@@ -181,7 +183,7 @@ void main() {
 
     verify(mockVMService.registerService('flutterVersion', 'Flutter Tools')).called(1);
   }, overrides: <Type, Generator>{
-    FlutterVersion: () => MockFlutterVersion(),
+    FlutterVersion: () => FakeFlutterVersion(),
   });
 
   testUsingContext('VMService prints messages for connection failures', () {
@@ -222,8 +224,9 @@ void main() {
       const Stream<String>.empty(),
       completer.complete,
     );
+    final FlutterVmService flutterVmService = FlutterVmService(vmService);
 
-    unawaited(vmService.setAssetDirectory(
+    unawaited(flutterVmService.setAssetDirectory(
       assetsDirectory: Uri(path: 'abc', scheme: 'file'),
       viewId: 'abc',
       uiIsolateId: 'def',
@@ -247,8 +250,9 @@ void main() {
       const Stream<String>.empty(),
       completer.complete,
     );
+    final FlutterVmService flutterVmService = FlutterVmService(vmService);
 
-    unawaited(vmService.getSkSLs(
+    unawaited(flutterVmService.getSkSLs(
       viewId: 'abc',
     ));
 
@@ -264,12 +268,13 @@ void main() {
 
   testWithoutContext('flushUIThreadTasks forwards arguments correctly', () async {
     final Completer<String> completer = Completer<String>();
-    final vm_service.VmService  vmService = vm_service.VmService(
+    final vm_service.VmService vmService = vm_service.VmService(
       const Stream<String>.empty(),
       completer.complete,
     );
+    final FlutterVmService flutterVmService = FlutterVmService(vmService);
 
-    unawaited(vmService.flushUIThreadTasks(
+    unawaited(flutterVmService.flushUIThreadTasks(
       uiIsolateId: 'def',
     ));
 
@@ -354,7 +359,7 @@ void main() {
     expect(skSLs, isNull);
 
     final List<FlutterView> views = await fakeVmServiceHost.vmService.getFlutterViews();
-    expect(views, isNull);
+    expect(views, isEmpty);
 
     final vm_service.Response screenshot = await fakeVmServiceHost.vmService.screenshot();
     expect(screenshot, isNull);
@@ -447,13 +452,6 @@ void main() {
     expect(fakeVmServiceHost.hasRemainingExpectations, false);
   });
 
-  testWithoutContext('expandos are null safe', () {
-    vm_service.VmService vmService;
-
-    expect(vmService.httpAddress, null);
-    expect(vmService.wsAddress, null);
-  });
-
   testWithoutContext('Can process log events from the vm service', () {
     final vm_service.Event event = vm_service.Event(
       bytes: base64.encode(utf8.encode('Hello There\n')),
@@ -465,11 +463,11 @@ void main() {
   });
 }
 
-class MockDevice extends Mock implements Device {}
 class MockVMService extends Mock implements vm_service.VmService {}
-class MockFlutterVersion extends Mock implements FlutterVersion {
+class FakeDevice extends Fake implements Device {}
+class FakeFlutterVersion extends Fake implements FlutterVersion {
   @override
-  Map<String, Object> toJson() => const <String, Object>{'Mock': 'Version'};
+  Map<String, Object> toJson() => const <String, Object>{'Fake': 'Version'};
 }
 
 /// A [WebSocketConnector] that always throws an [io.SocketException].

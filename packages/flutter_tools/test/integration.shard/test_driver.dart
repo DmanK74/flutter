@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart = 2.8
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io; // ignore: dart_io_import
@@ -84,7 +86,6 @@ abstract class FlutterTestDriver {
     List<String> arguments, {
     String script,
     bool withDebugger = false,
-    File pidFile,
     bool singleWidgetReloads = false,
   }) async {
     final String flutterBin = fileSystem.path.join(getFlutterRoot(), 'bin', 'flutter');
@@ -93,9 +94,6 @@ abstract class FlutterTestDriver {
     }
     if (_printDebugOutputToStdOut) {
       arguments.add('--verbose');
-    }
-    if (pidFile != null) {
-      arguments.addAll(<String>['--pid-file', pidFile.path]);
     }
     if (script != null) {
       arguments.add(script);
@@ -177,7 +175,7 @@ abstract class FlutterTestDriver {
     final int port = _vmServiceWsUri != null ? vmServicePort : _attachPort;
     final VmService vmService = await vmServiceConnectUri('ws://localhost:$port/ws');
     final Isolate isolate = await waitForExtension(vmService, extension);
-    return await vmService.callServiceExtension(
+    return vmService.callServiceExtension(
       extension,
       isolateId: isolate.id,
       args: args,
@@ -302,9 +300,9 @@ abstract class FlutterTestDriver {
 
   Future<Isolate> stepOverOrOverAsyncSuspension({ bool waitForNextPause = true }) async {
     if (await isAtAsyncSuspension()) {
-      return await stepOverAsync(waitForNextPause: waitForNextPause);
+      return stepOverAsync(waitForNextPause: waitForNextPause);
     }
-    return await stepOver(waitForNextPause: waitForNextPause);
+    return stepOver(waitForNextPause: waitForNextPause);
   }
 
   Future<Isolate> _resume(String step, bool waitForNextPause) async {
@@ -465,9 +463,7 @@ class FlutterRunTestDriver extends FlutterTestDriver {
     bool chrome = false,
     bool expressionEvaluation = true,
     bool structuredErrors = false,
-    bool machine = true,
     bool singleWidgetReloads = false,
-    File pidFile,
     String script,
     List<String> additionalCommandArgs,
   }) async {
@@ -476,7 +472,7 @@ class FlutterRunTestDriver extends FlutterTestDriver {
         'run',
         if (!chrome)
           '--disable-service-auth-codes',
-        if (machine) '--machine',
+        '--machine',
         if (!spawnDdsInstance) '--disable-dds',
         ...getLocalEngineArguments(),
         '-d',
@@ -495,7 +491,6 @@ class FlutterRunTestDriver extends FlutterTestDriver {
       withDebugger: withDebugger,
       startPaused: startPaused,
       pauseOnExceptions: pauseOnExceptions,
-      pidFile: pidFile,
       script: script,
       singleWidgetReloads: singleWidgetReloads,
     );
@@ -506,7 +501,6 @@ class FlutterRunTestDriver extends FlutterTestDriver {
     bool withDebugger = false,
     bool startPaused = false,
     bool pauseOnExceptions = false,
-    File pidFile,
     bool singleWidgetReloads = false,
     List<String> additionalCommandArgs,
   }) async {
@@ -527,7 +521,6 @@ class FlutterRunTestDriver extends FlutterTestDriver {
       withDebugger: withDebugger,
       startPaused: startPaused,
       pauseOnExceptions: pauseOnExceptions,
-      pidFile: pidFile,
       singleWidgetReloads: singleWidgetReloads,
       attachPort: port,
     );
@@ -541,7 +534,6 @@ class FlutterRunTestDriver extends FlutterTestDriver {
     bool startPaused = false,
     bool pauseOnExceptions = false,
     bool singleWidgetReloads = false,
-    File pidFile,
     int attachPort,
   }) async {
     assert(!startPaused || withDebugger);
@@ -549,7 +541,6 @@ class FlutterRunTestDriver extends FlutterTestDriver {
       args,
       script: script,
       withDebugger: withDebugger,
-      pidFile: pidFile,
       singleWidgetReloads: singleWidgetReloads,
     );
 
@@ -733,7 +724,6 @@ class FlutterTestTestDriver extends FlutterTestDriver {
     bool withDebugger = false,
     bool pauseOnExceptions = false,
     bool coverage = false,
-    File pidFile,
     Future<void> Function() beforeStart,
   }) async {
     await _setupProcess(<String>[
@@ -743,7 +733,7 @@ class FlutterTestTestDriver extends FlutterTestDriver {
       '--machine',
       if (coverage)
         '--coverage',
-    ], script: testFile, withDebugger: withDebugger, pauseOnExceptions: pauseOnExceptions, pidFile: pidFile, beforeStart: beforeStart);
+    ], script: testFile, withDebugger: withDebugger, pauseOnExceptions: pauseOnExceptions, beforeStart: beforeStart);
   }
 
   @override
@@ -752,7 +742,6 @@ class FlutterTestTestDriver extends FlutterTestDriver {
     String script,
     bool withDebugger = false,
     bool pauseOnExceptions = false,
-    File pidFile,
     Future<void> Function() beforeStart,
     bool singleWidgetReloads = false,
   }) async {
@@ -760,7 +749,6 @@ class FlutterTestTestDriver extends FlutterTestDriver {
       args,
       script: script,
       withDebugger: withDebugger,
-      pidFile: pidFile,
       singleWidgetReloads: singleWidgetReloads,
     );
 

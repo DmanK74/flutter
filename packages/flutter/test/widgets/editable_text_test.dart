@@ -7,11 +7,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 
-import '../flutter_test_alternative.dart' show Fake;
 import '../rendering/mock_canvas.dart';
 import 'editable_text_utils.dart';
 import 'semantics_tester.dart';
@@ -639,7 +637,7 @@ void main() {
     await pumpEditableTextWithTextStyle(const TextStyle(fontSize: 18));
     final EditableTextState state = tester.state<EditableTextState>(find.byType(EditableText));
     state.renderEditable.selectWordsInRange(
-      from: const Offset(0, 0),
+      from: Offset.zero,
       cause: SelectionChangedCause.longPress,
     );
     await tester.pumpAndSettle();
@@ -1126,7 +1124,7 @@ void main() {
 
     // Can show the toolbar when focused even though there's no text.
     state.renderEditable.selectWordsInRange(
-      from: const Offset(0, 0),
+      from: Offset.zero,
       cause: SelectionChangedCause.tap,
     );
     await tester.pump();
@@ -1171,16 +1169,14 @@ void main() {
     controller.text = 'blah';
     await tester.pump();
     state.renderEditable.selectWordsInRange(
-      from: const Offset(0, 0),
+      from: Offset.zero,
       cause: SelectionChangedCause.tap,
     );
     await tester.pump();
 
     // Clear the text and selection.
     expect(find.text('Paste'), findsNothing);
-    state.updateEditingValue(const TextEditingValue(
-      text: '',
-    ));
+    state.updateEditingValue(TextEditingValue.empty);
     await tester.pump();
 
     // Should be able to show the toolbar.
@@ -1213,7 +1209,7 @@ void main() {
 
     // Select something. Doesn't really matter what.
     state.renderEditable.selectWordsInRange(
-      from: const Offset(0, 0),
+      from: Offset.zero,
       cause: SelectionChangedCause.tap,
     );
     await tester.pump();
@@ -1281,7 +1277,7 @@ void main() {
 
     // Select something. Doesn't really matter what.
     state.renderEditable.selectWordsInRange(
-      from: const Offset(0, 0),
+      from: Offset.zero,
       cause: SelectionChangedCause.tap,
     );
     await tester.pump();
@@ -1320,7 +1316,7 @@ void main() {
 
     // Select something. Doesn't really matter what.
     state.renderEditable.selectWordsInRange(
-      from: const Offset(0, 0),
+      from: Offset.zero,
       cause: SelectionChangedCause.tap,
     );
     await tester.pump();
@@ -1810,8 +1806,7 @@ void main() {
   });
 
   testWidgets(
-    'iOS autocorrection rectangle should appear on demand'
-    'and dismiss when the text changes or when focus is lost',
+    'iOS autocorrection rectangle should appear on demand and dismiss when the text changes or when focus is lost',
     (WidgetTester tester) async {
       const Color rectColor = Color(0xFFFF0000);
 
@@ -4686,19 +4681,17 @@ void main() {
     await tester.pumpWidget(MaterialApp(
       home: Align(
         alignment: Alignment.topLeft,
-        child: Container(
-          child: SizedBox(
-            width: 100,
-            child: EditableText(
-              showSelectionHandles: true,
-              controller: controller,
-              focusNode: FocusNode(),
-              style: Typography.material2018(platform: TargetPlatform.iOS).black.subtitle1!,
-              cursorColor: Colors.blue,
-              backgroundCursorColor: Colors.grey,
-              selectionControls: cupertinoTextSelectionControls,
-              keyboardType: TextInputType.text,
-            ),
+        child: SizedBox(
+          width: 100,
+          child: EditableText(
+            showSelectionHandles: true,
+            controller: controller,
+            focusNode: FocusNode(),
+            style: Typography.material2018(platform: TargetPlatform.iOS).black.subtitle1!,
+            cursorColor: Colors.blue,
+            backgroundCursorColor: Colors.grey,
+            selectionControls: cupertinoTextSelectionControls,
+            keyboardType: TextInputType.text,
           ),
         ),
       ),
@@ -5203,7 +5196,7 @@ void main() {
       tester.testTextInput.log.clear();
 
       final EditableTextState state = tester.state<EditableTextState>(find.byWidget(editableText));
-      state.textEditingValue = const TextEditingValue(text: 'remoteremoteremote');
+      state.userUpdateTextEditingValue(const TextEditingValue(text: 'remoteremoteremote'), SelectionChangedCause.keyboard);
 
       // Apply in order: length formatter -> listener -> onChanged -> listener.
       expect(controller.text, 'remote listener onChanged listener');
@@ -5359,6 +5352,7 @@ void main() {
       'TextInput.setEditingState',
       'TextInput.setEditingState',
       'TextInput.show',
+      'TextInput.show',
     ];
     expect(tester.testTextInput.log.length, logOrder.length);
     int index = 0;
@@ -5473,16 +5467,18 @@ void main() {
     log.clear();
 
     final EditableTextState state = tester.firstState(find.byType(EditableText));
-
     // setEditingState is not called when only the remote changes
-    state.updateEditingValue(const TextEditingValue(
+    state.updateEditingValue(TextEditingValue(
       text: 'a',
+      selection: controller.selection,
     ));
+
     expect(log.length, 0);
 
     // setEditingState is called when remote value modified by the formatter.
-    state.updateEditingValue(const TextEditingValue(
+    state.updateEditingValue(TextEditingValue(
       text: 'I will be modified by the formatter.',
+      selection: controller.selection,
     ));
     expect(log.length, 1);
     MethodCall methodCall = log[0];
@@ -5596,8 +5592,9 @@ void main() {
     final EditableTextState state = tester.firstState(find.byType(EditableText));
 
     // setEditingState is called when remote value modified by the formatter.
-    state.updateEditingValue(const TextEditingValue(
+    state.updateEditingValue(TextEditingValue(
       text: 'I will be modified by the formatter.',
+      selection: controller.selection,
     ));
     expect(log.length, 1);
     expect(log, contains(matchesMethodCall(
@@ -5669,8 +5666,9 @@ void main() {
 
     final EditableTextState state = tester.firstState(find.byType(EditableText));
 
-    state.updateEditingValue(const TextEditingValue(
+    state.updateEditingValue(TextEditingValue(
       text: 'a',
+      selection: controller.selection,
     ));
     await tester.pump();
 
@@ -5693,8 +5691,9 @@ void main() {
     log.clear();
 
     // Send repeat value from the engine.
-    state.updateEditingValue(const TextEditingValue(
+    state.updateEditingValue(TextEditingValue(
       text: 'a',
+      selection: controller.selection,
     ));
     await tester.pump();
 
@@ -5788,13 +5787,14 @@ void main() {
 
       final EditableTextState state = tester.firstState(find.byType(EditableText));
 
-      state.updateEditingValue(const TextEditingValue(
+      state.updateEditingValue(TextEditingValue(
         text: 'a',
+        selection: controller.selection,
       ));
       await tester.pump();
 
       // Nothing called when only the remote changes.
-      expect(log.length, 0);
+      expect(log, isEmpty);
 
       controller.clear();
 
@@ -5811,6 +5811,25 @@ void main() {
           'composingExtent': -1,
         }),
       );
+    });
+
+    testWidgets('TextEditingController.buildTextSpan receives build context', (WidgetTester tester) async {
+      final _AccentColorTextEditingController controller = _AccentColorTextEditingController('a');
+      const Color color = Color.fromARGB(255, 1, 2, 3);
+      await tester.pumpWidget(MaterialApp(
+        theme: ThemeData.light().copyWith(accentColor: color),
+        home: EditableText(
+          controller: controller,
+          focusNode: FocusNode(),
+          style: Typography.material2018(platform: TargetPlatform.android).black.subtitle1!,
+          cursorColor: Colors.blue,
+          backgroundCursorColor: Colors.grey,
+        ),
+      ));
+
+      final RenderEditable renderEditable = findRenderEditable(tester);
+      final TextSpan textSpan = renderEditable.text!;
+      expect(textSpan.style!.color, color);
     });
   });
 
@@ -5879,7 +5898,7 @@ void main() {
     expect(tester.testTextInput.editingState!['text'], equals(''));
     expect(state.wantKeepAlive, true);
 
-    state.updateEditingValue(const TextEditingValue(text: ''));
+    state.updateEditingValue(TextEditingValue.empty);
     state.updateEditingValue(const TextEditingValue(text: 'a'));
     state.updateEditingValue(const TextEditingValue(text: 'aa'));
     state.updateEditingValue(const TextEditingValue(text: 'aaa'));
@@ -5977,13 +5996,13 @@ void main() {
     // Composing changes should not trigger reformat, as it could cause infinite loops on some IMEs.
     state.updateEditingValue(const TextEditingValue(text: '0123', selection: TextSelection.collapsed(offset: 2), composing: TextRange(start: 1, end: 2)));
     expect(formatter.formatCallCount, 3);
-    expect(formatter.lastOldValue.composing, const TextRange(start: -1, end: -1));
-    expect(formatter.lastNewValue.composing, const TextRange(start: -1, end: -1)); // The new composing was registered in formatter.
+    expect(formatter.lastOldValue.composing, TextRange.empty);
+    expect(formatter.lastNewValue.composing, TextRange.empty); // The new composing was registered in formatter.
     // Clearing composing region should trigger reformat.
     state.updateEditingValue(const TextEditingValue(text: '01234', selection: TextSelection.collapsed(offset: 2))); // Formats, with oldValue containing composing region.
     expect(formatter.formatCallCount, 4);
     expect(formatter.lastOldValue.composing, const TextRange(start: 1, end: 2));
-    expect(formatter.lastNewValue.composing, const TextRange(start: -1, end: -1));
+    expect(formatter.lastNewValue.composing, TextRange.empty);
 
     const List<String> referenceLog = <String>[
       '[1]: , 01',
@@ -6519,7 +6538,7 @@ void main() {
       expect(updateException?.toString(), shouldAssert ? contains('composing range'): isNull);
     }
 
-    expectToAssert(const TextEditingValue(text: ''), false);
+    expectToAssert(TextEditingValue.empty, false);
     expectToAssert(const TextEditingValue(text: 'test', composing: TextRange(start: 1, end: 0)), true);
     expectToAssert(const TextEditingValue(text: 'test', composing: TextRange(start: 1, end: 9)), true);
     expectToAssert(const TextEditingValue(text: 'test', composing: TextRange(start: -1, end: 9)), false);
@@ -6564,6 +6583,7 @@ void main() {
     final EditableTextState state = tester.state<EditableTextState>(find.byType(EditableText));
     state.updateEditingValue(const TextEditingValue(
       text: 'foo composing bar',
+      selection: TextSelection.collapsed(offset: 4),
       composing: TextRange(start: 4, end: 12),
     ));
     controller.selection = const TextSelection.collapsed(offset: 2);
@@ -6572,6 +6592,7 @@ void main() {
     // Reset the composing range.
     state.updateEditingValue(const TextEditingValue(
       text: 'foo composing bar',
+      selection: TextSelection.collapsed(offset: 4),
       composing: TextRange(start: 4, end: 12),
     ));
     expect(state.currentTextEditingValue.composing, const TextRange(start: 4, end: 12));
@@ -6579,13 +6600,14 @@ void main() {
     // Positioning cursor after the composing range should clear the composing range.
     state.updateEditingValue(const TextEditingValue(
       text: 'foo composing bar',
+      selection: TextSelection.collapsed(offset: 4),
       composing: TextRange(start: 4, end: 12),
     ));
     controller.selection = const TextSelection.collapsed(offset: 14);
     expect(state.currentTextEditingValue.composing, TextRange.empty);
   });
 
-  testWidgets('Clears composing range if cursor moves outside that range', (WidgetTester tester) async {
+  testWidgets('Clears composing range if cursor moves outside that range - case two', (WidgetTester tester) async {
     final Widget widget = MaterialApp(
       home: EditableText(
         backgroundCursorColor: Colors.grey,
@@ -6602,6 +6624,7 @@ void main() {
     final EditableTextState state = tester.state<EditableTextState>(find.byType(EditableText));
     state.updateEditingValue(const TextEditingValue(
       text: 'foo composing bar',
+      selection: TextSelection.collapsed(offset: 4),
       composing: TextRange(start: 4, end: 12),
     ));
     controller.selection = const TextSelection(baseOffset: 1, extentOffset: 2);
@@ -6610,6 +6633,7 @@ void main() {
     // Reset the composing range.
     state.updateEditingValue(const TextEditingValue(
       text: 'foo composing bar',
+      selection: TextSelection.collapsed(offset: 4),
       composing: TextRange(start: 4, end: 12),
     ));
     expect(state.currentTextEditingValue.composing, const TextRange(start: 4, end: 12));
@@ -6617,6 +6641,7 @@ void main() {
     // Setting a selection within the composing range clears the composing range.
     state.updateEditingValue(const TextEditingValue(
       text: 'foo composing bar',
+      selection: TextSelection.collapsed(offset: 4),
       composing: TextRange(start: 4, end: 12),
     ));
     controller.selection = const TextSelection(baseOffset: 5, extentOffset: 7);
@@ -6625,6 +6650,7 @@ void main() {
     // Reset the composing range.
     state.updateEditingValue(const TextEditingValue(
       text: 'foo composing bar',
+      selection: TextSelection.collapsed(offset: 4),
       composing: TextRange(start: 4, end: 12),
     ));
     expect(state.currentTextEditingValue.composing, const TextRange(start: 4, end: 12));
@@ -6632,6 +6658,7 @@ void main() {
     // Setting a selection after the composing range clears the composing range.
     state.updateEditingValue(const TextEditingValue(
       text: 'foo composing bar',
+      selection: TextSelection.collapsed(offset: 4),
       composing: TextRange(start: 4, end: 12),
     ));
     controller.selection = const TextSelection(baseOffset: 13, extentOffset: 15);
@@ -7287,4 +7314,14 @@ class SkipPainting extends SingleChildRenderObjectWidget {
 class SkipPaintingRenderObject extends RenderProxyBox {
   @override
   void paint(PaintingContext context, Offset offset) { }
+}
+
+class _AccentColorTextEditingController extends TextEditingController {
+  _AccentColorTextEditingController(String text) : super(text: text);
+
+  @override
+  TextSpan buildTextSpan({required BuildContext context, TextStyle? style, required bool withComposing}) {
+    final Color color = Theme.of(context).accentColor;
+    return super.buildTextSpan(context: context, style: TextStyle(color: color), withComposing: withComposing);
+  }
 }
