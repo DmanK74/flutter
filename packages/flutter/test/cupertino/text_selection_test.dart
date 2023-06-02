@@ -2,6 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// This file is run as part of a reduced test set in CI on Mac and Windows
+// machines.
+@Tags(<String>['reduced-test-set'])
+library;
+
 import 'dart:ui' as ui show BoxHeightStyle;
 
 import 'package:flutter/cupertino.dart';
@@ -11,23 +16,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../widgets/editable_text_utils.dart' show textOffsetToPosition, findRenderEditable;
-
-class MockClipboard {
-  Object _clipboardData = <String, dynamic>{
-    'text': null,
-  };
-
-  Future<dynamic> handleMethodCall(MethodCall methodCall) async {
-    switch (methodCall.method) {
-      case 'Clipboard.getData':
-        return _clipboardData;
-      case 'Clipboard.setData':
-        _clipboardData = methodCall.arguments! as Object;
-        break;
-    }
-  }
-}
+import '../widgets/clipboard_utils.dart';
+import '../widgets/editable_text_utils.dart' show findRenderEditable, textOffsetToPosition;
 
 class _LongCupertinoLocalizationsDelegate extends LocalizationsDelegate<CupertinoLocalizations> {
   const _LongCupertinoLocalizationsDelegate();
@@ -69,7 +59,6 @@ const _LongCupertinoLocalizations _longLocalizations = _LongCupertinoLocalizatio
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   final MockClipboard mockClipboard = MockClipboard();
-  TestDefaultBinaryMessengerBinding.instance!.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, mockClipboard.handleMethodCall);
 
   // Returns true iff the button is visually enabled.
   bool appearsEnabled(WidgetTester tester, String text) {
@@ -91,6 +80,23 @@ void main() {
       );
     }).toList();
   }
+
+  setUp(() async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      mockClipboard.handleMethodCall,
+    );
+    // Fill the clipboard so that the Paste option is available in the text
+    // selection menu.
+    await Clipboard.setData(const ClipboardData(text: 'Clipboard data'));
+  });
+
+  tearDown(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      null,
+    );
+  });
 
   group('canSelectAll', () {
     Widget createEditableText({
@@ -168,7 +174,6 @@ void main() {
                       context,
                       TextSelectionHandleType.right,
                       10.0,
-                      null,
                     ),
                   ),
                 ),
@@ -185,76 +190,6 @@ void main() {
     });
   });
 
-  // TODO(justinmc): https://github.com/flutter/flutter/issues/60145
-  testWidgets('Paste always appears regardless of clipboard content on iOS', (WidgetTester tester) async {
-    final TextEditingController controller = TextEditingController(
-      text: 'Atwater Peel Sherbrooke Bonaventure',
-    );
-    await tester.pumpWidget(
-      CupertinoApp(
-        home: Column(
-          children: <Widget>[
-            CupertinoTextField(
-              controller: controller,
-            ),
-          ],
-        ),
-      ),
-    );
-
-    // Make sure the clipboard is empty to start.
-    await Clipboard.setData(const ClipboardData(text: ''));
-
-    // Double tap to select the first word.
-    const int index = 4;
-    await tester.tapAt(textOffsetToPosition(tester, index));
-    await tester.pump(const Duration(milliseconds: 50));
-    await tester.tapAt(textOffsetToPosition(tester, index));
-    await tester.pumpAndSettle();
-    expect(controller.selection.isCollapsed, isFalse);
-    expect(controller.selection.baseOffset, 0);
-    expect(controller.selection.extentOffset, 7);
-
-    // Paste is showing even though clipboard is empty.
-    expect(find.text('Paste'), findsOneWidget);
-    expect(find.text('Copy'), findsOneWidget);
-    expect(find.text('Cut'), findsOneWidget);
-    expect(find.descendant(
-      of: find.byType(Overlay),
-      matching: find.byWidgetPredicate((Widget w) => '${w.runtimeType}' == '_TextSelectionHandleOverlay'),
-    ), findsNWidgets(2));
-
-    // Tap copy to add something to the clipboard and close the menu.
-    await tester.tapAt(tester.getCenter(find.text('Copy')));
-    await tester.pumpAndSettle();
-
-    // The menu is gone, but the handles are visible on the existing selection.
-    expect(find.text('Copy'), findsNothing);
-    expect(find.text('Cut'), findsNothing);
-    expect(find.text('Paste'), findsNothing);
-    expect(controller.selection.isCollapsed, isFalse);
-    expect(controller.selection.baseOffset, 0);
-    expect(controller.selection.extentOffset, 7);
-    expect(find.descendant(
-      of: find.byType(Overlay),
-      matching: find.byWidgetPredicate((Widget w) => '${w.runtimeType}' == '_TextSelectionHandleOverlay'),
-    ), findsNWidgets(2));
-
-    // Double tap to show the menu again.
-    await tester.tapAt(textOffsetToPosition(tester, index));
-    await tester.pump(const Duration(milliseconds: 50));
-    await tester.tapAt(textOffsetToPosition(tester, index));
-    await tester.pumpAndSettle();
-
-    // Paste still shows.
-    expect(find.text('Paste'), findsOneWidget);
-    expect(find.text('Copy'), findsOneWidget);
-    expect(find.text('Cut'), findsOneWidget);
-  },
-    skip: isBrowser, // [intended] We do not use Flutter-rendered context menu on the Web.
-    variant: const TargetPlatformVariant(<TargetPlatform>{ TargetPlatform.iOS }),
-  );
-
   group('Text selection menu overflow (iOS)', () {
     testWidgets('All menu items show when they fit.', (WidgetTester tester) async {
       final TextEditingController controller = TextEditingController(text: 'abc def ghi');
@@ -265,12 +200,16 @@ void main() {
               data: const MediaQueryData(size: Size(800.0, 600.0)),
               child: Center(
                 child: CupertinoTextField(
+                  autofocus: true,
                   controller: controller,
                 ),
               ),
             ),
           ),
       ));
+
+      // This extra pump is so autofocus can propagate to renderEditable.
+      await tester.pump();
 
       // Initially, the menu isn't shown at all.
       expect(find.text('Cut'), findsNothing);
@@ -311,8 +250,8 @@ void main() {
 
     testWidgets("When a menu item doesn't fit, a second page is used.", (WidgetTester tester) async {
       // Set the screen size to more narrow, so that Paste can't fit.
-      tester.binding.window.physicalSizeTestValue = const Size(800, 800);
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(800, 800);
+      addTearDown(tester.view.reset);
 
       final TextEditingController controller = TextEditingController(text: 'abc def ghi');
       await tester.pumpWidget(CupertinoApp(
@@ -383,8 +322,8 @@ void main() {
     testWidgets('A smaller menu puts each button on its own page.', (WidgetTester tester) async {
       // Set the screen size to more narrow, so that two buttons can't fit on
       // the same page.
-      tester.binding.window.physicalSizeTestValue = const Size(640, 800);
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(640, 800);
+      addTearDown(tester.view.reset);
 
       final TextEditingController controller = TextEditingController(text: 'abc def ghi');
       await tester.pumpWidget(CupertinoApp(
@@ -497,12 +436,16 @@ void main() {
               data: const MediaQueryData(size: Size(800.0, 600.0)),
               child: Center(
                 child: CupertinoTextField(
+                  autofocus: true,
                   controller: controller,
                 ),
               ),
             ),
           ),
       ));
+
+      // This extra pump is so autofocus can propagate to renderEditable.
+      await tester.pump();
 
       // Initially, the menu isn't shown at all.
       expect(find.text(_longLocalizations.cutButtonLabel), findsNothing);
@@ -597,6 +540,73 @@ void main() {
       expect(appearsEnabled(tester, '▶'), true);
     },
       skip: isBrowser, // [intended] We do not use Flutter-rendered context menu on the Web.
+      variant: const TargetPlatformVariant(<TargetPlatform>{ TargetPlatform.iOS }),
+    );
+
+    testWidgets(
+      'When selecting multiple lines over max lines',
+      (WidgetTester tester) async {
+        final TextEditingController controller = TextEditingController(text: 'abc\ndef\nghi\njkl\nmno\npqr');
+        await tester.pumpWidget(CupertinoApp(
+          home: Directionality(
+              textDirection: TextDirection.ltr,
+              child: MediaQuery(
+                data: const MediaQueryData(size: Size(800.0, 600.0)),
+                child: Center(
+                  child: CupertinoTextField(
+                    autofocus: true,
+                    padding: const EdgeInsets.all(8.0),
+                    controller: controller,
+                    maxLines: 2,
+                  ),
+                ),
+              ),
+            ),
+        ));
+
+        // This extra pump is so autofocus can propagate to renderEditable.
+        await tester.pump();
+
+        // Initially, the menu isn't shown at all.
+        expect(find.text('Cut'), findsNothing);
+        expect(find.text('Copy'), findsNothing);
+        expect(find.text('Paste'), findsNothing);
+        expect(find.text('Select All'), findsNothing);
+        expect(find.text('◀'), findsNothing);
+        expect(find.text('▶'), findsNothing);
+
+        // Long press on an space to show the selection menu.
+        await tester.longPressAt(textOffsetToPosition(tester, 1));
+        await tester.pumpAndSettle();
+        expect(find.text('Cut'), findsNothing);
+        expect(find.text('Copy'), findsNothing);
+        expect(find.text('Paste'), findsOneWidget);
+        expect(find.text('Select All'), findsOneWidget);
+        expect(find.text('◀'), findsNothing);
+        expect(find.text('▶'), findsNothing);
+
+        // Tap to select all.
+        await tester.tap(find.text('Select All'));
+        await tester.pumpAndSettle();
+
+        // Only Cut, Copy, and Paste are shown.
+        expect(find.text('Cut'), findsOneWidget);
+        expect(find.text('Copy'), findsOneWidget);
+        expect(find.text('Paste'), findsOneWidget);
+        expect(find.text('Select All'), findsNothing);
+        expect(find.text('◀'), findsNothing);
+        expect(find.text('▶'), findsNothing);
+
+        // The menu appears at the top of the visible selection.
+        final Offset selectionOffset = tester
+            .getTopLeft(find.byType(CupertinoTextSelectionToolbarButton).first);
+        final Offset textFieldOffset =
+            tester.getTopLeft(find.byType(CupertinoTextField));
+
+        // 7.0 + 43.0 + 8.0 - 8.0 = _kToolbarArrowSize + _kToolbarHeight + _kToolbarContentDistance - padding
+        expect(selectionOffset.dy + 7.0 + 43.0 + 8.0 - 8.0, equals(textFieldOffset.dy));
+      },
+      skip: isBrowser, // [intended] the selection menu isn't required by web
       variant: const TargetPlatformVariant(<TargetPlatform>{ TargetPlatform.iOS }),
     );
   });

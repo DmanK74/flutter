@@ -21,8 +21,9 @@ void main() {
       );
     }
     await tester.pumpWidget(buildFrame(1200.0));
-    expect(events.length, 0);
+    expect(events.length, 1);
 
+    events.clear();
     await tester.pumpWidget(buildFrame(1000.0));
     // Change the content dimensions will trigger a new event.
     expect(events.length, 1);
@@ -64,8 +65,9 @@ void main() {
 
     await tester.pumpWidget(NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification value) {
-        if (value is ScrollStartNotification || value is ScrollUpdateNotification || value is ScrollEndNotification)
+        if (value is ScrollStartNotification || value is ScrollUpdateNotification || value is ScrollEndNotification) {
           notification = value;
+        }
         return false;
       },
       child: const SingleChildScrollView(
@@ -207,15 +209,16 @@ void main() {
     ScrollNotification? notification;
 
     void handleNotification(ScrollNotification value) {
-      if (value is ScrollStartNotification || value is ScrollUpdateNotification || value is ScrollEndNotification)
+      if (value is ScrollStartNotification || value is ScrollUpdateNotification || value is ScrollEndNotification) {
         notification = value;
+      }
     }
 
     await tester.pumpWidget(
       ScrollNotificationObserver(
         child: Builder(
           builder: (BuildContext context) {
-            observer = ScrollNotificationObserver.of(context)!;
+            observer = ScrollNotificationObserver.of(context);
             return const SingleChildScrollView(
               child: SizedBox(height: 1200.0),
             );

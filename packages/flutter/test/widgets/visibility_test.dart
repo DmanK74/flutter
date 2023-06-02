@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -9,7 +10,7 @@ import '../rendering/mock_canvas.dart';
 import 'semantics_tester.dart';
 
 class TestState extends StatefulWidget {
-  const TestState({ Key? key, required this.child, required this.log }) : super(key: key);
+  const TestState({ super.key, required this.child, required this.log });
   final Widget child;
   final List<String> log;
   @override
@@ -106,9 +107,9 @@ void main() {
 
     await tester.pumpWidget(Center(
       child: Visibility(
-        child: testChild,
         replacement: const Placeholder(),
         visible: false,
+        child: testChild,
       ),
     ));
     expect(find.byType(Text, skipOffstage: false), findsNothing);
@@ -123,9 +124,8 @@ void main() {
 
     await tester.pumpWidget(Center(
       child: Visibility(
-        child: testChild,
         replacement: const Placeholder(),
-        visible: true,
+        child: testChild,
       ),
     ));
     expect(find.byType(Text, skipOffstage: false), findsOneWidget);
@@ -141,7 +141,6 @@ void main() {
 
     await tester.pumpWidget(Center(
       child: Visibility(
-        visible: true,
         maintainState: true,
         maintainAnimation: true,
         maintainSize: true,
@@ -254,7 +253,7 @@ void main() {
       ),
     ));
     expect(find.byType(Text, skipOffstage: false), findsOneWidget);
-    expect(find.byType(Text, skipOffstage: true), findsNothing);
+    expect(find.byType(Text), findsNothing);
     expect(find.text('a true', skipOffstage: false), findsOneWidget);
     expect(find.byType(Placeholder), findsNothing);
     expect(find.byType(Visibility), paintsNothing);
@@ -273,7 +272,7 @@ void main() {
       ),
     ));
     expect(find.byType(Text, skipOffstage: false), findsOneWidget);
-    expect(find.byType(Text, skipOffstage: true), findsNothing);
+    expect(find.byType(Text), findsNothing);
     expect(find.text('a false', skipOffstage: false), findsOneWidget);
     expect(find.byType(Placeholder), findsNothing);
     expect(find.byType(Visibility), paintsNothing);
@@ -288,7 +287,6 @@ void main() {
 
     await tester.pumpWidget(Center(
       child: Visibility(
-        visible: true,
         maintainState: true,
         child: testChild,
       ),
@@ -312,7 +310,7 @@ void main() {
       ),
     ));
     expect(find.byType(Text, skipOffstage: false), findsOneWidget);
-    expect(find.byType(Text, skipOffstage: true), findsNothing);
+    expect(find.byType(Text), findsNothing);
     expect(find.text('a false', skipOffstage: false), findsOneWidget);
     expect(find.byType(Placeholder), findsNothing);
     expect(find.byType(Visibility), paintsNothing);
@@ -325,7 +323,6 @@ void main() {
 
     await tester.pumpWidget(Center(
       child: Visibility(
-        visible: true,
         maintainState: true,
         child: testChild,
       ),
@@ -349,7 +346,7 @@ void main() {
       ),
     ));
     expect(find.byType(Text, skipOffstage: false), findsOneWidget);
-    expect(find.byType(Text, skipOffstage: true), findsNothing);
+    expect(find.byType(Text), findsNothing);
     expect(find.text('a false', skipOffstage: false), findsOneWidget);
     expect(find.byType(Placeholder), findsNothing);
     expect(find.byType(Visibility), paintsNothing);
@@ -380,7 +377,6 @@ void main() {
 
     await tester.pumpWidget(Center(
       child: Visibility(
-        visible: true,
         child: testChild,
       ),
     ));
@@ -413,7 +409,6 @@ void main() {
 
     await tester.pumpWidget(Center(
       child: Visibility(
-        visible: true,
         child: testChild,
       ),
     ));
@@ -430,4 +425,154 @@ void main() {
 
     semantics.dispose();
   });
+
+  testWidgets('Visibility does not force compositing when visible and maintain*', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const Visibility(
+        maintainSize: true,
+        maintainAnimation: true,
+        maintainState: true,
+        child: Text('hello', textDirection: TextDirection.ltr),
+      ),
+    );
+
+    // Root transform from the tester and then the picture created by the text.
+    expect(tester.layers, hasLength(2));
+    expect(tester.layers, isNot(contains(isA<OpacityLayer>())));
+    expect(tester.layers.last, isA<PictureLayer>());
+  });
+
+  testWidgets('SliverVisibility does not force compositing when visible and maintain*', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const Directionality(
+        textDirection: TextDirection.ltr,
+        child: CustomScrollView(
+          slivers: <Widget>[
+            SliverVisibility(
+              maintainSize: true,
+              maintainAnimation: true,
+              maintainState: true,
+              sliver: SliverList(
+              delegate: SliverChildListDelegate.fixed(
+                addRepaintBoundaries: false,
+                <Widget>[
+                  Text('hello'),
+                ],
+              ),
+            ))
+          ]
+        ),
+      ),
+    );
+
+    // This requires a lot more layers due to including sliver lists which do manage additional
+    // offset layers. Just trust me this is one fewer layers than before...
+    expect(tester.layers, hasLength(6));
+    expect(tester.layers, isNot(contains(isA<OpacityLayer>())));
+    expect(tester.layers.last, isA<PictureLayer>());
+  });
+
+  testWidgets('Visibility.of returns correct value', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const Directionality(
+        textDirection: TextDirection.ltr,
+        child: _ShowVisibility(),
+      ),
+    );
+    expect(find.text('is visible ? true', skipOffstage: false), findsOneWidget);
+
+    await tester.pumpWidget(
+      const Directionality(
+        textDirection: TextDirection.ltr,
+        child: Visibility(
+          maintainState: true,
+          child: _ShowVisibility(),
+        ),
+      ),
+    );
+    expect(find.text('is visible ? true', skipOffstage: false), findsOneWidget);
+
+    await tester.pumpWidget(
+      const Directionality(
+        textDirection: TextDirection.ltr,
+        child: Visibility(
+          visible: false,
+          maintainState: true,
+          child: _ShowVisibility(),
+        ),
+      ),
+    );
+    expect(find.text('is visible ? false', skipOffstage: false), findsOneWidget);
+  });
+
+  testWidgets('Visibility.of works when multiple Visibility widgets are in hierarchy', (WidgetTester tester) async {
+    bool didChangeDependencies = false;
+    void handleDidChangeDependencies() {
+      didChangeDependencies = true;
+    }
+
+    Widget newWidget({required bool ancestorIsVisible, required bool descendantIsVisible}) {
+      return Directionality(
+        textDirection: TextDirection.ltr,
+        child: Visibility(
+          visible: ancestorIsVisible,
+          maintainState: true,
+          child: Center(
+            child: Visibility(
+              visible: descendantIsVisible,
+              maintainState: true,
+              child: _ShowVisibility(
+                onDidChangeDependencies: handleDidChangeDependencies,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    await tester.pumpWidget(newWidget(ancestorIsVisible: true, descendantIsVisible: true));
+    expect(didChangeDependencies, isTrue);
+    expect(find.text('is visible ? true', skipOffstage: false), findsOneWidget);
+    didChangeDependencies = false;
+
+    await tester.pumpWidget(newWidget(ancestorIsVisible: true, descendantIsVisible: false));
+    expect(didChangeDependencies, isTrue);
+    expect(find.text('is visible ? false', skipOffstage: false), findsOneWidget);
+    didChangeDependencies = false;
+
+    await tester.pumpWidget(newWidget(ancestorIsVisible: true, descendantIsVisible: false));
+    expect(didChangeDependencies, isFalse);
+
+    await tester.pumpWidget(newWidget(ancestorIsVisible: false, descendantIsVisible: false));
+    expect(didChangeDependencies, isTrue);
+    didChangeDependencies = false;
+
+    await tester.pumpWidget(newWidget(ancestorIsVisible: false, descendantIsVisible: true));
+    expect(didChangeDependencies, isTrue);
+    expect(find.text('is visible ? false', skipOffstage: false), findsOneWidget);
+  });
+}
+
+class _ShowVisibility extends StatefulWidget {
+  const _ShowVisibility({this.onDidChangeDependencies});
+
+  final VoidCallback? onDidChangeDependencies;
+
+  @override
+  State<_ShowVisibility> createState() => _ShowVisibilityState();
+}
+
+class _ShowVisibilityState extends State<_ShowVisibility> {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.onDidChangeDependencies != null) {
+      widget.onDidChangeDependencies!();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text('is visible ? ${Visibility.of(context)}');
+  }
 }
