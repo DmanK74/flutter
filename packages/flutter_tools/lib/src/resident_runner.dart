@@ -279,8 +279,13 @@ class FlutterDevice {
         // this may not be the case when scraping logcat for URIs. If this URI is
         // from an old application instance, we shouldn't try and start DDS.
         try {
+<<<<<<< HEAD
           service = await connectToVmService(vmServiceUri!, logger: globals.logger);
           await service.dispose();
+=======
+          service = await connectToVmService(observatoryUri);
+          service.dispose();
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
         } on Exception catch (exception) {
           globals.printTrace('Fail to connect to service protocol: $vmServiceUri: $exception');
           if (!completer.isCompleted && !_isListeningForVmServiceUri!) {
@@ -1414,6 +1419,97 @@ abstract class ResidentRunner extends ResidentHandlers {
     }
   }
 
+<<<<<<< HEAD
+=======
+  DevToolsServerAddress activeDevToolsServer() {
+    _devToolsLauncher ??= DevtoolsLauncher.instance;
+    return _devToolsLauncher.activeDevToolsServer;
+  }
+
+  Future<void> serveDevToolsGracefully({
+    Uri devToolsServerAddress
+  }) async {
+    if (!supportsServiceProtocol) {
+      return;
+    }
+
+    _devToolsLauncher ??= DevtoolsLauncher.instance;
+    if (devToolsServerAddress != null) {
+      _devToolsLauncher.devToolsUri = devToolsServerAddress;
+    } else {
+      await _devToolsLauncher.serve();
+    }
+  }
+
+  Future<void> maybeCallDevToolsUriServiceExtension() async {
+    _devToolsLauncher ??= DevtoolsLauncher.instance;
+    if (_devToolsLauncher?.activeDevToolsServer != null) {
+      await Future.wait(<Future<void>>[
+        for (final FlutterDevice device in flutterDevices)
+          _callDevToolsUriExtension(device),
+      ]);
+    }
+  }
+
+  Future<void> _callDevToolsUriExtension(FlutterDevice device) async {
+    if (_devToolsLauncher == null) {
+      return;
+    }
+    await waitForExtension(device.vmService, 'ext.flutter.activeDevToolsServerAddress');
+    try {
+      if (_devToolsLauncher == null) {
+        return;
+      }
+      unawaited(invokeFlutterExtensionRpcRawOnFirstIsolate(
+        'ext.flutter.activeDevToolsServerAddress',
+        device: device,
+        params: <String, dynamic>{
+          'value': _devToolsLauncher.activeDevToolsServer.uri.toString(),
+        },
+      ));
+    } on Exception catch (e) {
+      globals.printError(
+        'Failed to set DevTools server address: ${e.toString()}. Deep links to'
+        ' DevTools will not show in Flutter errors.',
+      );
+    }
+  }
+
+  Future<void> callConnectedVmServiceUriExtension() async {
+    await Future.wait(<Future<void>>[
+      for (final FlutterDevice device in flutterDevices)
+        _callConnectedVmServiceExtension(device),
+    ]);
+  }
+
+  Future<void> _callConnectedVmServiceExtension(FlutterDevice device) async {
+    if (device.vmService.httpAddress != null || device.vmService.wsAddress != null) {
+      final Uri uri = device.vmService.httpAddress ?? device.vmService.wsAddress;
+      await waitForExtension(device.vmService, 'ext.flutter.connectedVmServiceUri');
+      try {
+        unawaited(invokeFlutterExtensionRpcRawOnFirstIsolate(
+          'ext.flutter.connectedVmServiceUri',
+          device: device,
+          params: <String, dynamic>{
+            'value': uri.toString(),
+          },
+        ));
+      } on Exception catch (e) {
+        globals.printError(e.toString());
+        globals.printError(
+          'Failed to set vm service URI: ${e.toString()}. Deep links to DevTools'
+          ' will not show in Flutter errors.',
+        );
+      }
+    }
+  }
+
+  Future<void> shutdownDevTools() async {
+    await _devToolsLauncher?.close();
+    _devToolsLauncher = null;
+  }
+
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
   Future<void> _serviceProtocolDone(dynamic object) async {
     globals.printTrace('Service protocol connection closed.');
   }

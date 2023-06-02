@@ -158,7 +158,11 @@ class DartVm {
   ///
   /// After this function completes this object is no longer usable.
   Future<void> stop() async {
+<<<<<<< HEAD
     await _vmService.dispose();
+=======
+    _vmService.dispose();
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
     await _vmService.onDone;
   }
 }

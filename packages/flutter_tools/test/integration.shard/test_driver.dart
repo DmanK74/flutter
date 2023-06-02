@@ -691,7 +691,11 @@ class FlutterRunTestDriver extends FlutterTestDriver {
     final VmService? vmService = _vmService;
     if (vmService != null) {
       _debugPrint('Closing VM service...');
+<<<<<<< HEAD
       await vmService.dispose();
+=======
+      _vmService.dispose();
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
     }
     if (_currentRunningAppId != null) {
       _debugPrint('Detaching from app...');
@@ -715,7 +719,11 @@ class FlutterRunTestDriver extends FlutterTestDriver {
     final VmService? vmService = _vmService;
     if (vmService != null) {
       _debugPrint('Closing VM service...');
+<<<<<<< HEAD
       await vmService.dispose();
+=======
+      _vmService.dispose();
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
     }
     final Process? process = _process;
     if (_currentRunningAppId != null) {

@@ -4,7 +4,7 @@
 
 import 'dart:ui' as ui show BoxHeightStyle, BoxWidthStyle;
 
-import 'package:flutter/foundation.dart' show defaultTargetPlatform;
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -1395,7 +1395,11 @@ class _CupertinoTextFieldState extends State<CupertinoTextField> with Restoratio
       ),
     );
 
+<<<<<<< HEAD
     return Semantics(
+=======
+    final Widget child = Semantics(
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
       enabled: enabled,
       onTap: !enabled || widget.readOnly ? null : () {
         if (!controller.selection.isValid) {
@@ -1403,6 +1407,7 @@ class _CupertinoTextFieldState extends State<CupertinoTextField> with Restoratio
         }
         _requestKeyboard();
       },
+<<<<<<< HEAD
       onDidGainAccessibilityFocus: handleDidGainAccessibilityFocus,
       child: TextFieldTapRegion(
         child: IgnorePointer(
@@ -1418,10 +1423,31 @@ class _CupertinoTextFieldState extends State<CupertinoTextField> with Restoratio
                 heightFactor: 1.0,
                 child: _addTextDependentAttachments(paddedEditable, textStyle, placeholderStyle),
               ),
+=======
+      child: IgnorePointer(
+        ignoring: !enabled,
+        child: Container(
+          decoration: effectiveDecoration,
+          child: _selectionGestureDetectorBuilder.buildGestureDetector(
+            behavior: HitTestBehavior.translucent,
+            child: Align(
+              alignment: Alignment(-1.0, _textAlignVertical.y),
+              widthFactor: 1.0,
+              heightFactor: 1.0,
+              child: _addTextDependentAttachments(paddedEditable, textStyle, placeholderStyle),
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
             ),
           ),
         ),
       ),
     );
+
+    if (kIsWeb) {
+      return Shortcuts(
+        shortcuts: scrollShortcutOverrides,
+        child: child,
+      );
+    }
+    return child;
   }
 }

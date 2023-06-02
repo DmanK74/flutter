@@ -163,10 +163,15 @@ function upgrade_flutter () (
     "$DART" --verbosity=error --disable-dart-dev $FLUTTER_TOOL_ARGS --snapshot="$SNAPSHOT_PATH" --snapshot-kind="app-jit" --packages="$FLUTTER_TOOLS_DIR/.dart_tool/package_config.json" --no-enable-mirrors "$SCRIPT_PATH" > /dev/null
     echo "$compilekey" > "$STAMP_PATH"
 
+<<<<<<< HEAD
     # Delete any temporary snapshot path.
     if [ -f "$SNAPSHOT_PATH_OLD" ]; then
       rm -f "$SNAPSHOT_PATH_OLD"
     fi
+=======
+    "$DART" --verbosity=error --disable-dart-dev $FLUTTER_TOOL_ARGS --snapshot="$SNAPSHOT_PATH" --packages="$FLUTTER_TOOLS_DIR/.packages" --no-enable-mirrors "$SCRIPT_PATH"
+    echo "$revision" > "$STAMP_PATH"
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
   fi
   # The exit here is extraneous since the function is run in a subshell, but
   # this serves as documentation that running the function in a subshell is

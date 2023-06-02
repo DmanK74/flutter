@@ -271,11 +271,18 @@ class LinearProgressIndicator extends ProgressIndicator {
   ///
   /// {@macro flutter.material.ProgressIndicator.ProgressIndicator}
   const LinearProgressIndicator({
+<<<<<<< HEAD
     super.key,
     super.value,
     super.backgroundColor,
     super.color,
     super.valueColor,
+=======
+    Key? key,
+    double? value,
+    Color? backgroundColor,
+    Animation<Color?>? valueColor,
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
     this.minHeight,
     super.semanticsLabel,
     super.semanticsValue,

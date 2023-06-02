@@ -337,6 +337,7 @@ abstract class CreateBase extends FlutterCommand {
 
   /// Creates a template to use for [renderTemplate].
   @protected
+<<<<<<< HEAD
   Map<String, Object?> createTemplateContext({
     required String organization,
     required String projectName,
@@ -353,6 +354,17 @@ abstract class CreateBase extends FlutterCommand {
     bool withPlatformChannelPluginHook = false,
     bool withFfiPluginHook = false,
     bool withEmptyMain = false,
+=======
+  Map<String, dynamic> createTemplateContext({
+    String organization,
+    String projectName,
+    String projectDescription,
+    String androidLanguage,
+    String iosLanguage,
+    String flutterRoot,
+    String dartSdkVersionBounds,
+    bool withPluginHook = false,
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
     bool ios = false,
     bool android = false,
     bool web = false,
@@ -417,6 +429,7 @@ abstract class CreateBase extends FlutterCommand {
       'windows': windows,
       'year': DateTime.now().year,
       'dartSdkVersionBounds': dartSdkVersionBounds,
+<<<<<<< HEAD
       'implementationTests': implementationTests,
       'agpVersion': agpVersion,
       'kotlinVersion': kotlinVersion,
@@ -426,6 +439,8 @@ abstract class CreateBase extends FlutterCommand {
       'minSdkVersion': gradle.minSdkVersion,
       'ndkVersion': gradle.ndkVersion,
       'targetSdkVersion': gradle.targetSdkVersion,
+=======
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
     };
   }
 

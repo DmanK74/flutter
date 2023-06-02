@@ -114,10 +114,14 @@ abstract class ScrollView extends StatelessWidget {
        physics = physics ?? ((primary ?? false) || (primary == null && controller == null && identical(scrollDirection, Axis.vertical)) ? const AlwaysScrollableScrollPhysics() : null);
 
   /// {@template flutter.widgets.scroll_view.scrollDirection}
+<<<<<<< HEAD
   /// The [Axis] along which the scroll view's offset increases.
   ///
   /// For the direction in which active scrolling may be occurring, see
   /// [ScrollDirection].
+=======
+  /// The axis along which the scroll view scrolls.
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
   ///
   /// Defaults to [Axis.vertical].
   /// {@endtemplate}
@@ -170,6 +174,7 @@ abstract class ScrollView extends StatelessWidget {
   ///
   /// On iOS, this also identifies the scroll view that will scroll to top in
   /// response to a tap in the status bar.
+  /// {@endtemplate}
   ///
   /// Cannot be true while a [ScrollController] is provided to `controller`,
   /// only one ScrollController can be associated with a ScrollView.
@@ -231,6 +236,7 @@ abstract class ScrollView extends StatelessWidget {
   /// inefficient to speculatively create this object each frame to see if the
   /// physics should be updated.)
   /// {@endtemplate}
+<<<<<<< HEAD
   ///
   /// If an explicit [ScrollBehavior] is provided to [scrollBehavior], the
   /// [ScrollPhysics] provided by that behavior will take precedence after
@@ -245,6 +251,10 @@ abstract class ScrollView extends StatelessWidget {
   /// [ScrollBehavior].
   final ScrollBehavior? scrollBehavior;
 
+=======
+  final ScrollPhysics? physics;
+
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
   /// {@template flutter.widgets.scroll_view.shrinkWrap}
   /// Whether the extent of the scroll view in the [scrollDirection] should be
   /// determined by the contents being viewed.
@@ -260,8 +270,11 @@ abstract class ScrollView extends StatelessWidget {
   /// scroll view needs to be recomputed whenever the scroll position changes.
   ///
   /// Defaults to false.
+<<<<<<< HEAD
   ///
   /// {@youtube 560 315 https://www.youtube.com/watch?v=LUqDNnv_dh0}
+=======
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
   /// {@endtemplate}
   final bool shrinkWrap;
 
@@ -310,6 +323,7 @@ abstract class ScrollView extends StatelessWidget {
   /// within the viewport. If the [anchor] is 1.0, and the axis direction is
   /// [AxisDirection.right], then the zero scroll offset is on the left edge of
   /// the viewport.
+<<<<<<< HEAD
   ///
   /// Most scroll views by default are ordered [GrowthDirection.forward].
   /// Changing the default values of [ScrollView.anchor],
@@ -327,6 +341,8 @@ abstract class ScrollView extends StatelessWidget {
   ///
   /// ** See code in examples/api/lib/rendering/growth_direction/growth_direction.0.dart **
   /// {@end-tool}
+=======
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
   /// {@endtemplate}
   final double anchor;
 

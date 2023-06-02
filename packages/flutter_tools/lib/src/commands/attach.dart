@@ -4,6 +4,10 @@
 
 import 'dart:async';
 
+<<<<<<< HEAD
+=======
+import 'package:meta/meta.dart';
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
 import 'package:vm_service/vm_service.dart';
 
 import '../android/android_device.dart';

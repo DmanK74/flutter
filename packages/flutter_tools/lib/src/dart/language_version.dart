@@ -110,7 +110,11 @@ LanguageVersion determineLanguageVersion(File file, Package? package, String flu
 
   // If the language version cannot be found, use the package version.
   if (package != null) {
+<<<<<<< HEAD
     return package.languageVersion ?? currentLanguageVersion(file.fileSystem, flutterRoot);
+=======
+    return package.languageVersion ?? nullSafeVersion;
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
   }
   // Default to current version.
   return currentLanguageVersion(file.fileSystem, flutterRoot);

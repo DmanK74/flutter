@@ -167,6 +167,7 @@ class ReorderableList extends StatefulWidget {
   /// {@endtemplate}
   final ReorderCallback onReorder;
 
+<<<<<<< HEAD
   /// {@template flutter.widgets.reorderable_list.onReorderStart}
   /// A callback that is called when an item drag has started.
   ///
@@ -195,6 +196,8 @@ class ReorderableList extends StatefulWidget {
   /// {@endtemplate}
   final void Function(int index)? onReorderEnd;
 
+=======
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
   /// {@template flutter.widgets.reorderable_list.proxyDecorator}
   /// A callback that allows the app to add an animated decoration around
   /// an item when it is being dragged.
@@ -247,12 +250,15 @@ class ReorderableList extends StatefulWidget {
   ///
   /// Defaults to [Clip.hardEdge].
   final Clip clipBehavior;
+<<<<<<< HEAD
 
   /// {@macro flutter.widgets.list_view.itemExtent}
   final double? itemExtent;
 
   /// {@macro flutter.widgets.list_view.prototypeItem}
   final Widget? prototypeItem;
+=======
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
 
   /// The state from the closest instance of this class that encloses the given
   /// context.
@@ -453,21 +459,27 @@ class SliverReorderableList extends StatefulWidget {
   /// {@macro flutter.widgets.reorderable_list.itemBuilder}
   final IndexedWidgetBuilder itemBuilder;
 
+<<<<<<< HEAD
   /// {@macro flutter.widgets.SliverChildBuilderDelegate.findChildIndexCallback}
   final ChildIndexGetter? findChildIndexCallback;
 
+=======
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
   /// {@macro flutter.widgets.reorderable_list.itemCount}
   final int itemCount;
 
   /// {@macro flutter.widgets.reorderable_list.onReorder}
   final ReorderCallback onReorder;
 
+<<<<<<< HEAD
   /// {@macro flutter.widgets.reorderable_list.onReorderStart}
   final void Function(int)? onReorderStart;
 
   /// {@macro flutter.widgets.reorderable_list.onReorderEnd}
   final void Function(int)? onReorderEnd;
 
+=======
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
   /// {@macro flutter.widgets.reorderable_list.proxyDecorator}
   final ReorderItemProxyDecorator? proxyDecorator;
 

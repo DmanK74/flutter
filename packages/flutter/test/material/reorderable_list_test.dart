@@ -1281,6 +1281,7 @@ void main() {
       expect(itemsCreated, <int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17});
     });
 
+<<<<<<< HEAD
     group('Padding', () {
       testWidgets('Padding with no header & footer', (WidgetTester tester) async {
         const EdgeInsets padding = EdgeInsets.fromLTRB(10, 20, 30, 40);
@@ -1355,6 +1356,8 @@ void main() {
       });
     });
 
+=======
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
     testWidgets('ReorderableListView can be reversed', (WidgetTester tester) async {
       final Widget reorderableListView = ReorderableListView(
         reverse: true,

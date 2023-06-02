@@ -244,7 +244,11 @@ class VMServiceFlutterDriver extends FlutterDriver {
 
     final Health health = await driver.checkHealth();
     if (health.status != HealthStatus.ok) {
+<<<<<<< HEAD
       await client.dispose();
+=======
+      client.dispose();
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
       await client.onDone;
       throw DriverError('Flutter application health check failed.');
     }
@@ -524,7 +528,11 @@ class VMServiceFlutterDriver extends FlutterDriver {
 
   @override
   Future<void> close() async {
+<<<<<<< HEAD
     await _serviceClient.dispose();
+=======
+    _serviceClient.dispose();
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
     await _serviceClient.onDone;
   }
 }

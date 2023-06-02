@@ -390,7 +390,11 @@ abstract class DragGestureRecognizer extends OneSequenceGestureRecognizer {
         }
       }
     }
+<<<<<<< HEAD
     if (event is PointerUpEvent || event is PointerCancelEvent || event is PointerPanZoomEndEvent) {
+=======
+    if (event is PointerUpEvent || event is PointerCancelEvent) {
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
       _giveUpPointer(event.pointer);
     }
   }
@@ -471,12 +475,20 @@ abstract class DragGestureRecognizer extends OneSequenceGestureRecognizer {
     stopTrackingPointer(pointer);
     // If we never accepted the pointer, we reject it since we are no longer
     // interested in winning the gesture arena for it.
+<<<<<<< HEAD
     if (!_acceptedActivePointers.remove(pointer)) {
+=======
+    if (!_acceptedActivePointers.remove(pointer))
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
       resolvePointer(pointer, GestureDisposition.rejected);
     }
   }
 
   void _checkDown() {
+<<<<<<< HEAD
+=======
+    assert(_initialButtons == kPrimaryButton);
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
     if (onDown != null) {
       final DragDownDetails details = DragDownDetails(
         globalPosition: _initialPosition.global,
@@ -486,7 +498,12 @@ abstract class DragGestureRecognizer extends OneSequenceGestureRecognizer {
     }
   }
 
+<<<<<<< HEAD
   void _checkStart(Duration? timestamp, int pointer) {
+=======
+  void _checkStart(Duration timestamp, int pointer) {
+    assert(_initialButtons == kPrimaryButton);
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
     if (onStart != null) {
       final DragStartDetails details = DragStartDetails(
         sourceTimeStamp: timestamp,
@@ -505,6 +522,10 @@ abstract class DragGestureRecognizer extends OneSequenceGestureRecognizer {
     required Offset globalPosition,
     Offset? localPosition,
   }) {
+<<<<<<< HEAD
+=======
+    assert(_initialButtons == kPrimaryButton);
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
     if (onUpdate != null) {
       final DragUpdateDetails details = DragUpdateDetails(
         sourceTimeStamp: sourceTimeStamp,

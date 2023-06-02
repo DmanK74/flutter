@@ -316,6 +316,7 @@ class CreateCommand extends CreateBase {
       withEmptyMain: emptyArgument,
       androidLanguage: stringArg('android-language'),
       iosLanguage: stringArg('ios-language'),
+<<<<<<< HEAD
       iosDevelopmentTeam: developmentTeam,
       ios: includeIos,
       android: includeAndroid,
@@ -328,6 +329,16 @@ class CreateCommand extends CreateBase {
       agpVersion: gradle.templateAndroidGradlePluginVersion,
       kotlinVersion: gradle.templateKotlinGradlePluginVersion,
       gradleVersion: gradle.templateDefaultGradleVersion,
+=======
+      ios: platforms.contains('ios'),
+      android: platforms.contains('android'),
+      web: featureFlags.isWebEnabled && platforms.contains('web'),
+      linux: featureFlags.isLinuxEnabled && platforms.contains('linux'),
+      macos: featureFlags.isMacOSEnabled && platforms.contains('macos'),
+      windows: featureFlags.isWindowsEnabled && platforms.contains('windows'),
+      // Enable null-safety for sample code, which is - unlike our regular templates - already migrated.
+      dartSdkVersionBounds: sampleCode != null ? '">=2.12.0-0 <3.0.0"' : '">=2.7.0 <3.0.0"'
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
     );
 
     final String relativeDirPath = globals.fs.path.relative(projectDirPath);

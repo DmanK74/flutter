@@ -258,6 +258,7 @@ class CoverageCollector extends TestWatcher {
 
 Future<Map<String, dynamic>> collect(Uri serviceUri, Set<String>? libraryNames, {
   bool waitPaused = false,
+<<<<<<< HEAD
   String? debugName,
   @visibleForTesting bool forceSequential = false,
   @visibleForTesting FlutterVmService? serviceOverride,
@@ -267,4 +268,152 @@ Future<Map<String, dynamic>> collect(Uri serviceUri, Set<String>? libraryNames, 
       serviceUri, false, false, false, libraryNames,
       serviceOverrideForTesting: serviceOverride?.service,
       branchCoverage: branchCoverage);
+=======
+  String debugName,
+  Future<vm_service.VmService> Function(Uri) connector = _defaultConnect,
+}) async {
+  final vm_service.VmService vmService = await connector(serviceUri);
+  final Map<String, dynamic> result = await _getAllCoverage(
+      vmService, libraryPredicate);
+  vmService.dispose();
+  return result;
+}
+
+Future<Map<String, dynamic>> _getAllCoverage(vm_service.VmService service, bool Function(String) libraryPredicate) async {
+  final vm_service.VM vm = await service.getVM();
+  final List<Map<String, dynamic>> coverage = <Map<String, dynamic>>[];
+  for (final vm_service.IsolateRef isolateRef in vm.isolates) {
+    Map<String, Object> scriptList;
+    try {
+      final vm_service.ScriptList actualScriptList = await service.getScripts(isolateRef.id);
+      scriptList = actualScriptList.json;
+    } on vm_service.SentinelException {
+      continue;
+    }
+    final List<Future<void>> futures = <Future<void>>[];
+
+    final Map<String, Map<String, dynamic>> scripts = <String, Map<String, dynamic>>{};
+    final Map<String, Map<String, dynamic>> sourceReports = <String, Map<String, dynamic>>{};
+    // For each ScriptRef loaded into the VM, load the corresponding Script and
+    // SourceReport object.
+
+    for (final Map<String, dynamic> script in (scriptList['scripts'] as List<dynamic>).cast<Map<String, dynamic>>()) {
+      if (!libraryPredicate(script['uri'] as String)) {
+        continue;
+      }
+      final String scriptId = script['id'] as String;
+      futures.add(
+        service.getSourceReport(
+          isolateRef.id,
+          <String>['Coverage'],
+          scriptId: scriptId,
+          forceCompile: true,
+        )
+        .then((vm_service.SourceReport report) {
+          sourceReports[scriptId] = report.json;
+        })
+      );
+      futures.add(
+        service
+          .getObject(isolateRef.id, scriptId)
+          .then((vm_service.Obj script) {
+            scripts[scriptId] = script.json;
+          })
+      );
+    }
+    await Future.wait(futures);
+    _buildCoverageMap(scripts, sourceReports, coverage);
+  }
+  return <String, dynamic>{'type': 'CodeCoverage', 'coverage': coverage};
+}
+
+// Build a hitmap of Uri -> Line -> Hit Count for each script object.
+void _buildCoverageMap(
+  Map<String, Map<String, dynamic>> scripts,
+  Map<String, Map<String, dynamic>> sourceReports,
+  List<Map<String, dynamic>> coverage,
+) {
+  final Map<String, Map<int, int>> hitMaps = <String, Map<int, int>>{};
+  for (final String scriptId in scripts.keys) {
+    final Map<String, dynamic> sourceReport = sourceReports[scriptId];
+    for (final Map<String, dynamic> range in (sourceReport['ranges'] as List<dynamic>).cast<Map<String, dynamic>>()) {
+      final Map<String, dynamic> coverage = castStringKeyedMap(range['coverage']);
+      // Coverage reports may sometimes be null for a Script.
+      if (coverage == null) {
+        continue;
+      }
+      final Map<String, dynamic> scriptRef = castStringKeyedMap(sourceReport['scripts'][range['scriptIndex']]);
+      final String uri = scriptRef['uri'] as String;
+
+      hitMaps[uri] ??= <int, int>{};
+      final Map<int, int> hitMap = hitMaps[uri];
+      final List<int> hits = (coverage['hits'] as List<dynamic>).cast<int>();
+      final List<int> misses = (coverage['misses'] as List<dynamic>).cast<int>();
+      final List<dynamic> tokenPositions = scripts[scriptRef['id']]['tokenPosTable'] as List<dynamic>;
+      // The token positions can be null if the script has no lines that may be covered.
+      if (tokenPositions == null) {
+        continue;
+      }
+      if (hits != null) {
+        for (final int hit in hits) {
+          final int line = _lineAndColumn(hit, tokenPositions)[0];
+          final int current = hitMap[line] ?? 0;
+          hitMap[line] = current + 1;
+        }
+      }
+      if (misses != null) {
+        for (final int miss in misses) {
+          final int line = _lineAndColumn(miss, tokenPositions)[0];
+          hitMap[line] ??= 0;
+        }
+      }
+    }
+  }
+  hitMaps.forEach((String uri, Map<int, int> hitMap) {
+    coverage.add(_toScriptCoverageJson(uri, hitMap));
+  });
+}
+
+// Binary search the token position table for the line and column which
+// corresponds to each token position.
+// The format of this table is described in https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#script
+List<int> _lineAndColumn(int position, List<dynamic> tokenPositions) {
+  int min = 0;
+  int max = tokenPositions.length;
+  while (min < max) {
+    final int mid = min + ((max - min) >> 1);
+    final List<int> row = (tokenPositions[mid] as List<dynamic>).cast<int>();
+    if (row[1] > position) {
+      max = mid;
+    } else {
+      for (int i = 1; i < row.length; i += 2) {
+        if (row[i] == position) {
+          return <int>[row.first, row[i + 1]];
+        }
+      }
+      min = mid + 1;
+    }
+  }
+  throw StateError('Unreachable');
+}
+
+// Returns a JSON hit map backward-compatible with pre-1.16.0 SDKs.
+Map<String, dynamic> _toScriptCoverageJson(String scriptUri, Map<int, int> hitMap) {
+  final Map<String, dynamic> json = <String, dynamic>{};
+  final List<int> hits = <int>[];
+  hitMap.forEach((int line, int hitCount) {
+    hits.add(line);
+    hits.add(hitCount);
+  });
+  json['source'] = scriptUri;
+  json['script'] = <String, dynamic>{
+    'type': '@Script',
+    'fixedId': true,
+    'id': 'libraries/1/scripts/${Uri.encodeComponent(scriptUri)}',
+    'uri': scriptUri,
+    '_kind': 'library',
+  };
+  json['hits'] = hits;
+  return json;
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
 }

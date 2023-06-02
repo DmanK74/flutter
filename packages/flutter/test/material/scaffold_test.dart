@@ -2492,7 +2492,11 @@ void main() {
                                 Navigator.pop(context, null);
                               },
                               child: const Text('Pop route'),
+<<<<<<< HEAD
                             ),
+=======
+                            )
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
                           ],
                         ),
                       );
@@ -2504,7 +2508,11 @@ void main() {
             ),
           ),
         ),
+<<<<<<< HEAD
       ),
+=======
+      )
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
     ));
 
     expect(find.text(snackBarContent), findsNothing);
@@ -2531,6 +2539,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text(snackBarContent), findsNothing);
   });
+<<<<<<< HEAD
 
   testWidgets('Drawer can be dismissed with escape keyboard shortcut', (WidgetTester tester) async {
     // Regression test for https://github.com/flutter/flutter/issues/106131
@@ -2698,6 +2707,8 @@ void main() {
 
     expect(tester.takeException(), isNull);
   });
+=======
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
 }
 
 class _GeometryListener extends StatefulWidget {

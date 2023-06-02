@@ -22,17 +22,28 @@ import 'package:flutter_tools/src/build_info.dart';
 import 'package:flutter_tools/src/cache.dart';
 import 'package:flutter_tools/src/commands/daemon.dart';
 import 'package:flutter_tools/src/commands/run.dart';
+<<<<<<< HEAD
 import 'package:flutter_tools/src/devfs.dart';
 import 'package:flutter_tools/src/device.dart';
 import 'package:flutter_tools/src/globals.dart' as globals;
 import 'package:flutter_tools/src/ios/devices.dart';
+=======
+import 'package:flutter_tools/src/convert.dart';
+import 'package:flutter_tools/src/device.dart';
+import 'package:flutter_tools/src/globals.dart' as globals;
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
 import 'package:flutter_tools/src/project.dart';
 import 'package:flutter_tools/src/reporting/reporting.dart';
 import 'package:flutter_tools/src/resident_runner.dart';
 import 'package:flutter_tools/src/runner/flutter_command.dart';
 import 'package:flutter_tools/src/vmservice.dart';
+<<<<<<< HEAD
 import 'package:flutter_tools/src/web/compile.dart';
 import 'package:test/fake.dart';
+=======
+import 'package:meta/meta.dart';
+import 'package:mockito/mockito.dart';
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
 import 'package:vm_service/vm_service.dart';
 
 import '../../src/common.dart';
@@ -706,6 +717,66 @@ void main() {
         FileSystem: () => fs,
         ProcessManager: () => FakeProcessManager.any(),
       });
+
+      testUsingContext('No web renderer options are added to non web device', () async {
+        final FakeApplicationPackageFactory applicationPackageFactory = ApplicationPackageFactory.instance as FakeApplicationPackageFactory;
+        final RunCommand command = RunCommand();
+        final MockDevice mockDevice = MockDevice(TargetPlatform.ios);
+        when(mockDevice.supportsRuntimeMode(any)).thenAnswer((Invocation invocation) => true);
+        when(mockDevice.isLocalEmulator).thenAnswer((Invocation invocation) => Future<bool>.value(false));
+        when(mockDevice.getLogReader(app: anyNamed('app'))).thenReturn(FakeDeviceLogReader());
+        when(mockDevice.supportsFastStart).thenReturn(true);
+        when(mockDevice.sdkNameAndVersion).thenAnswer((Invocation invocation) => Future<String>.value('iOS 13'));
+        applicationPackageFactory.package = PrebuiltIOSApp(projectBundleId: 'test');
+
+        DebuggingOptions debuggingOptions;
+
+        when(mockDevice.startApp(
+          any,
+          mainPath: anyNamed('mainPath'),
+          debuggingOptions: anyNamed('debuggingOptions'),
+          platformArgs: anyNamed('platformArgs'),
+          route: anyNamed('route'),
+          prebuiltApplication: anyNamed('prebuiltApplication'),
+          ipv6: anyNamed('ipv6'),
+          userIdentifier: anyNamed('userIdentifier'),
+        )).thenAnswer((Invocation invocation) {
+          debuggingOptions = invocation.namedArguments[#debuggingOptions] as DebuggingOptions;
+          return Future<LaunchResult>.value(LaunchResult.failed());
+        });
+
+        when(mockDeviceManager.getDevices()).thenAnswer(
+          (Invocation invocation) => Future<List<Device>>.value(<Device>[mockDevice])
+        );
+
+        when(mockDeviceManager.findTargetDevices(any, timeout: anyNamed('timeout'))).thenAnswer(
+          (Invocation invocation) => Future<List<Device>>.value(<Device>[mockDevice])
+        );
+
+        final Directory tempDir = globals.fs.systemTempDirectory.createTempSync('flutter_run_test.');
+        tempDir.childDirectory('ios').childFile('AppDelegate.swift').createSync(recursive: true);
+        tempDir.childFile('.dart_tool/package_config')
+          ..createSync(recursive: true)
+          ..writeAsStringSync(json.encode(<String, Object>{'configVersion': 2, 'packages': <Object>[]}));
+        tempDir.childDirectory('lib').childFile('main.dart').createSync(recursive: true);
+        tempDir.childFile('pubspec.yaml').writeAsStringSync('name: test');
+        globals.fs.currentDirectory = tempDir;
+
+        await expectToolExitLater(createTestCommandRunner(command).run(<String>[
+          'run',
+          '--no-pub',
+          '--no-hot',
+        ]), isNull);
+        // No web renderer options are added.
+        expect(debuggingOptions.buildInfo.dartDefines, isEmpty);
+      }, overrides: <Type, Generator>{
+        Artifacts: () => artifacts,
+        Cache: () => mockCache,
+        DeviceManager: () => mockDeviceManager,
+        FileSystem: () => fs,
+        ProcessManager: () => mockProcessManager,
+        ApplicationPackageFactory: () => FakeApplicationPackageFactory(),
+      });
     });
 
     testUsingContext('should only request artifacts corresponding to connected devices', () async {
@@ -962,6 +1033,7 @@ void main() {
     });
   });
 
+<<<<<<< HEAD
   group('terminal', () {
     late FakeAnsiTerminal fakeTerminal;
 
@@ -1013,6 +1085,8 @@ void main() {
     });
   });
 
+=======
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
   testUsingContext('Flutter run catches service has disappear errors and throws a tool exit', () async {
     final FakeResidentRunner residentRunner = FakeResidentRunner();
     residentRunner.rpcError = RPCError('flutter._listViews', RPCErrorCodes.kServiceDisappeared, '');
@@ -1023,10 +1097,13 @@ void main() {
       'run',
       '--no-pub',
     ]), contains('Lost connection to device.'));
+<<<<<<< HEAD
   }, overrides: <Type, Generator>{
     Cache: () => Cache.test(processManager: FakeProcessManager.any()),
     FileSystem: () => MemoryFileSystem.test(),
     ProcessManager: () => FakeProcessManager.any(),
+=======
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
   });
 
   testUsingContext('Flutter run does not catch other RPC errors', () async {
@@ -1039,6 +1116,7 @@ void main() {
       'run',
       '--no-pub',
     ]), throwsA(isA<RPCError>()));
+<<<<<<< HEAD
   }, overrides: <Type, Generator>{
     Cache: () => Cache.test(processManager: FakeProcessManager.any()),
     FileSystem: () => MemoryFileSystem.test(),
@@ -1142,6 +1220,8 @@ void main() {
   }, overrides: <Type, Generator>{
     ProcessManager: () => FakeProcessManager.any(),
     Logger: () => BufferLogger.test(),
+=======
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
   });
 }
 
@@ -1203,6 +1283,7 @@ class FakeDevice extends Fake implements Device {
   bool supportsRuntimeMode(BuildMode mode) => true;
 
   @override
+<<<<<<< HEAD
   Future<bool> get supportsHardwareRendering async => true;
 
   @override
@@ -1210,6 +1291,9 @@ class FakeDevice extends Fake implements Device {
 
   @override
   bool get supportsHotRestart => true;
+=======
+  bool supportsHotReload = false;
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
 
   @override
   bool get supportsFastStart => false;
@@ -1302,6 +1386,7 @@ class FakeDevice extends Fake implements Device {
   }
 }
 
+<<<<<<< HEAD
 // Unfortunately Device, despite not being immutable, has an `operator ==`.
 // Until we fix that, we have to also ignore related lints here.
 // ignore: avoid_implementing_value_types
@@ -1346,10 +1431,23 @@ class TestRunCommandForUsageValues extends RunCommand {
   @override
   Future<BuildInfo> getBuildInfo({ BuildMode? forcedBuildMode, File? forcedTargetFile }) async {
     return const BuildInfo(BuildMode.debug, null, treeShakeIcons: false);
+=======
+class FakeApplicationPackageFactory extends Fake implements ApplicationPackageFactory {
+  ApplicationPackage package;
+
+  @override
+  Future<ApplicationPackage> getPackageForPlatform(
+    TargetPlatform platform, {
+    BuildInfo buildInfo,
+    File applicationBinary,
+  }) async {
+    return package;
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
   }
 }
 
 class TestRunCommandWithFakeResidentRunner extends RunCommand {
+<<<<<<< HEAD
   late FakeResidentRunner fakeResidentRunner;
 
   @override
@@ -1358,6 +1456,16 @@ class TestRunCommandWithFakeResidentRunner extends RunCommand {
     required List<FlutterDevice> flutterDevices,
     required String? applicationBinaryPath,
     required FlutterProject flutterProject,
+=======
+  FakeResidentRunner fakeResidentRunner;
+
+  @override
+  Future<ResidentRunner> createRunner({
+    @required bool hotMode,
+    @required List<FlutterDevice> flutterDevices,
+    @required String applicationBinaryPath,
+    @required FlutterProject flutterProject,
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
   }) async {
     return fakeResidentRunner;
   }
@@ -1369,6 +1477,7 @@ class TestRunCommandWithFakeResidentRunner extends RunCommand {
   }
 }
 
+<<<<<<< HEAD
 class TestRunCommandThatOnlyValidates extends RunCommand {
   @override
   Future<FlutterCommandResult> runCommand() async {
@@ -1389,10 +1498,26 @@ class FakeResidentRunner extends Fake implements ResidentRunner {
     await null;
     if (rpcError != null) {
       throw rpcError!;
+=======
+class FakeResidentRunner extends Fake implements ResidentRunner {
+  RPCError rpcError;
+
+  @override
+  Future<int> run({
+    Completer<DebugConnectionInfo> connectionInfoCompleter,
+    Completer<void> appStartedCompleter,
+    bool enableDevTools = false,
+    String route,
+  }) async {
+    await null;
+    if (rpcError != null) {
+      throw rpcError;
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
     }
     return 0;
   }
 }
+<<<<<<< HEAD
 
 class DaemonCapturingRunCommand extends RunCommand {
   late Daemon daemon;
@@ -1462,3 +1587,5 @@ class FakeAnsiTerminal extends Fake implements AnsiTerminal {
   @override
   bool get singleCharMode => setSingleCharModeHistory.last;
 }
+=======
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3

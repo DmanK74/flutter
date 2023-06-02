@@ -88,6 +88,7 @@ const int _kObscureShowLatestCharCursorTicks = 3;
 
 /// The default mime types to be used when allowedMimeTypes is not provided.
 ///
+<<<<<<< HEAD
 /// The default value supports inserting images of any supported format.
 const List<String> kDefaultContentInsertionMimeTypes = <String>[
   'image/png',
@@ -143,6 +144,16 @@ class _RenderCompositionCallback extends RenderProxyBox {
     super.paint(context, offset);
   }
 }
+=======
+/// This is a temporary fix for: https://github.com/flutter/flutter/issues/74191
+final Map<LogicalKeySet, Intent> scrollShortcutOverrides = <LogicalKeySet, Intent>{
+  LogicalKeySet(LogicalKeyboardKey.space): DoNothingAndStopPropagationIntent(),
+  LogicalKeySet(LogicalKeyboardKey.arrowUp): DoNothingAndStopPropagationIntent(),
+  LogicalKeySet(LogicalKeyboardKey.arrowDown): DoNothingAndStopPropagationIntent(),
+  LogicalKeySet(LogicalKeyboardKey.arrowLeft): DoNothingAndStopPropagationIntent(),
+  LogicalKeySet(LogicalKeyboardKey.arrowRight): DoNothingAndStopPropagationIntent(),
+};
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
 
 /// A controller for an editable text field.
 ///

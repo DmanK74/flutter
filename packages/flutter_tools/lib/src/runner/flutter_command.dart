@@ -1119,7 +1119,11 @@ abstract class FlutterCommand extends Command<void> {
   ///
   /// Throws a [ToolExit] if the current set of options is not compatible with
   /// each other.
+<<<<<<< HEAD
   Future<BuildInfo> getBuildInfo({ BuildMode? forcedBuildMode, File? forcedTargetFile }) async {
+=======
+  Future<BuildInfo> getBuildInfo({ BuildMode forcedBuildMode, bool updateWebDefines = true }) async {
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
     final bool trackWidgetCreation = argParser.options.containsKey('track-widget-creation') &&
       boolArg('track-widget-creation');
 
@@ -1229,6 +1233,7 @@ abstract class FlutterCommand extends Command<void> {
     final Map<String, Object>? defineConfigJsonMap = extractDartDefineConfigJsonMap();
     List<String> dartDefines = extractDartDefines(defineConfigJsonMap: defineConfigJsonMap);
 
+<<<<<<< HEAD
     WebRendererMode webRenderer = WebRendererMode.autoDetect;
     if (argParser.options.containsKey(FlutterOptions.kWebRendererFlag)) {
       final WebRendererMode? mappedMode = _webRendererModeMap[stringArg(FlutterOptions.kWebRendererFlag)!];
@@ -1245,6 +1250,10 @@ abstract class FlutterCommand extends Command<void> {
           dartDefines.add('FLUTTER_WEB_CANVASKIT_URL=https://www.gstatic.com/flutter-canvaskit/${globals.flutterVersion.engineRevision}/');
         }
       }
+=======
+    if (argParser.options.containsKey('web-renderer') && updateWebDefines) {
+      dartDefines = updateDartDefines(dartDefines, stringArg('web-renderer'));
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
     }
 
     return BuildInfo(buildMode,

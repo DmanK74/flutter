@@ -45,7 +45,11 @@ void main() {
   });
 
   testWithoutContext('ArtifactUpdater can download a zip archive and delete stale files', () async {
+<<<<<<< HEAD
     final FakeOperatingSystemUtils operatingSystemUtils = FakeOperatingSystemUtils();
+=======
+    final MockOperatingSystemUtils operatingSystemUtils = MockOperatingSystemUtils();
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
     final MemoryFileSystem fileSystem = MemoryFileSystem.test();
     final BufferLogger logger = BufferLogger.test();
     final ArtifactUpdater artifactUpdater = ArtifactUpdater(
@@ -53,10 +57,16 @@ void main() {
       logger: logger,
       operatingSystemUtils: operatingSystemUtils,
       platform: testPlatform,
+<<<<<<< HEAD
       httpClient: FakeHttpClient.any(),
       tempStorage: fileSystem.currentDirectory.childDirectory('temp')
         ..createSync(),
       allowedBaseUrls: <String>['http://test.zip'],
+=======
+      httpClient: MockHttpClient(),
+      tempStorage: fileSystem.currentDirectory.childDirectory('temp')
+        ..createSync(),
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
     );
     // Unrelated file from another cache.
     fileSystem.file('out/bar').createSync(recursive: true);
@@ -65,7 +75,11 @@ void main() {
 
     await artifactUpdater.downloadZipArchive(
       'test message',
+<<<<<<< HEAD
       Uri.parse('http://test.zip'),
+=======
+      Uri.parse('http:///test.zip'),
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
       fileSystem.currentDirectory.childDirectory('out'),
     );
     expect(logger.statusText, contains('test message'));
@@ -76,7 +90,11 @@ void main() {
 
   testWithoutContext('ArtifactUpdater will not validate the md5 hash if the '
     'x-goog-hash header is present but missing an md5 entry', () async {
+<<<<<<< HEAD
     final FakeOperatingSystemUtils operatingSystemUtils = FakeOperatingSystemUtils();
+=======
+    final MockOperatingSystemUtils operatingSystemUtils = MockOperatingSystemUtils();
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
     final MemoryFileSystem fileSystem = MemoryFileSystem.test();
     final BufferLogger logger = BufferLogger.test();
 

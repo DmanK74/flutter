@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'gesture_tester.dart';
 
 void main() {
+<<<<<<< HEAD
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('acceptGesture tolerates a null lastPendingEventTimestamp', () {
@@ -34,6 +35,9 @@ void main() {
     recognizer.acceptGesture(event.pointer);
     expect(recognizer.debugLastPendingEventTimestamp, null);
   });
+=======
+  setUp(ensureGestureBinding);
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
 
   testGesture('do not crash on up event for a pending pointer after winning arena for another pointer', (GestureTester tester) {
     // Regression test for https://github.com/flutter/flutter/issues/75061.
@@ -64,6 +68,7 @@ void main() {
     );
 
     v.addPointer(down90);
+<<<<<<< HEAD
     GestureBinding.instance.gestureArena.close(90);
     h.addPointer(down91);
     v.addPointer(down91);
@@ -123,6 +128,16 @@ void main() {
       tester.route(down1);
       expect(recognized, <String>['onStartSecondary']);
     });
+=======
+    GestureBinding.instance!.gestureArena.close(90);
+    h.addPointer(down91);
+    v.addPointer(down91);
+    GestureBinding.instance!.gestureArena.close(91);
+    tester.async.flushMicrotasks();
+
+    GestureBinding.instance!.handleEvent(up90, HitTestEntry(MockHitTestTarget()));
+    GestureBinding.instance!.handleEvent(up91, HitTestEntry(MockHitTestTarget()));
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
   });
 }
 

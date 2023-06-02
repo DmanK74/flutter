@@ -3347,6 +3347,16 @@ Iterable<DiagnosticsNode> debugTransformDebugCreator(Iterable<DiagnosticsNode> p
   }
   final List<DiagnosticsNode> pending = <DiagnosticsNode>[];
   ErrorSummary? errorSummary;
+<<<<<<< HEAD
+=======
+  for (final DiagnosticsNode node in properties) {
+    if (node is ErrorSummary) {
+      errorSummary = node;
+      break;
+    }
+  }
+  bool foundStackTrace = false;
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
   for (final DiagnosticsNode node in properties) {
     if (node is ErrorSummary) {
       errorSummary = node;
@@ -3360,7 +3370,11 @@ Iterable<DiagnosticsNode> debugTransformDebugCreator(Iterable<DiagnosticsNode> p
       foundStackTrace = true;
     }
     if (_isDebugCreator(node)) {
+<<<<<<< HEAD
       result.addAll(_parseDiagnosticsNode(node, errorSummary));
+=======
+      yield* _parseDiagnosticsNode(node, errorSummary)!;
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
     } else {
       if (foundStackTrace) {
         pending.add(node);
@@ -3376,6 +3390,7 @@ Iterable<DiagnosticsNode> debugTransformDebugCreator(Iterable<DiagnosticsNode> p
 /// Transform the input [DiagnosticsNode].
 ///
 /// Return null if input [DiagnosticsNode] is not applicable.
+<<<<<<< HEAD
 Iterable<DiagnosticsNode> _parseDiagnosticsNode(
   DiagnosticsNode node,
   ErrorSummary? errorSummary,
@@ -3398,6 +3413,17 @@ Iterable<DiagnosticsNode> _parseDiagnosticsNode(
     });
     return <DiagnosticsNode>[];
   }
+=======
+Iterable<DiagnosticsNode>? _parseDiagnosticsNode(
+  DiagnosticsNode node,
+  ErrorSummary? errorSummary,
+) {
+  if (!_isDebugCreator(node))
+    return null;
+  final DebugCreator debugCreator = node.value! as DebugCreator;
+  final Element element = debugCreator.element;
+  return _describeRelevantUserCode(element, errorSummary);
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
 }
 
 Iterable<DiagnosticsNode> _describeRelevantUserCode(
@@ -3430,6 +3456,11 @@ Iterable<DiagnosticsNode> _describeRelevantUserCode(
     // TODO(chunhtai): should print out all the widgets that are about to cross
     // package boundaries.
     if (debugIsLocalCreationLocation(target)) {
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
       DiagnosticsNode? devToolsDiagnostic;
 
       // TODO(kenz): once the inspector is better at dealing with broken trees,
@@ -3437,7 +3468,11 @@ Iterable<DiagnosticsNode> _describeRelevantUserCode(
       // errors. See https://github.com/flutter/flutter/issues/74918.
       if (isOverflowError()) {
         final String? devToolsInspectorUri =
+<<<<<<< HEAD
           WidgetInspectorService.instance._devToolsInspectorUriForElement(target);
+=======
+        WidgetInspectorService.instance._devToolsInspectorUriForElement(target);
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
         if (devToolsInspectorUri != null) {
           devToolsDiagnostic = DevToolsDeepLinkProperty(
             'To inspect this widget in Flutter DevTools, visit: $devToolsInspectorUri',

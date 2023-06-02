@@ -252,8 +252,150 @@ class _NoContext implements AppContext {
   }
 }
 
+<<<<<<< HEAD
 /// Allows inserting file system exceptions into certain
 /// [MemoryFileSystem] operations by tagging path/op combinations.
+=======
+/// A fake implementation of a vm_service that mocks the JSON-RPC request
+/// and response structure.
+class FakeVmServiceHost {
+  FakeVmServiceHost({
+    @required List<VmServiceExpectation> requests,
+  }) : _requests = requests {
+    _vmService = vm_service.VmService(
+      _input.stream,
+      _output.add,
+    );
+    _applyStreamListen();
+    _output.stream.listen((String data) {
+      final Map<String, Object> request = json.decode(data) as Map<String, Object>;
+      if (_requests.isEmpty) {
+        throw Exception('Unexpected request: $request');
+      }
+      final FakeVmServiceRequest fakeRequest = _requests.removeAt(0) as FakeVmServiceRequest;
+      expect(request, isA<Map<String, Object>>()
+        .having((Map<String, Object> request) => request['method'], 'method', fakeRequest.method)
+        .having((Map<String, Object> request) => request['params'], 'args', fakeRequest.args)
+      );
+      if (fakeRequest.close) {
+        _vmService.dispose();
+        expect(_requests, isEmpty);
+        return;
+      }
+      if (fakeRequest.errorCode == null) {
+        _input.add(json.encode(<String, Object>{
+          'jsonrpc': '2.0',
+          'id': request['id'],
+          'result': fakeRequest.jsonResponse ?? <String, Object>{'type': 'Success'},
+        }));
+      } else {
+        _input.add(json.encode(<String, Object>{
+          'jsonrpc': '2.0',
+          'id': request['id'],
+          'error': <String, Object>{
+            'code': fakeRequest.errorCode,
+          }
+        }));
+      }
+      _applyStreamListen();
+    });
+  }
+
+  final List<VmServiceExpectation> _requests;
+  final StreamController<String> _input = StreamController<String>();
+  final StreamController<String> _output = StreamController<String>();
+
+  vm_service.VmService get vmService => _vmService;
+  vm_service.VmService _vmService;
+
+  bool get hasRemainingExpectations => _requests.isNotEmpty;
+
+  // remove FakeStreamResponse objects from _requests until it is empty
+  // or until we hit a FakeRequest
+  void _applyStreamListen() {
+    while (_requests.isNotEmpty && !_requests.first.isRequest) {
+      final FakeVmServiceStreamResponse response = _requests.removeAt(0) as FakeVmServiceStreamResponse;
+      _input.add(json.encode(<String, Object>{
+        'jsonrpc': '2.0',
+        'method': 'streamNotify',
+        'params': <String, Object>{
+          'streamId': response.streamId,
+          'event': response.event.toJson(),
+        },
+      }));
+    }
+  }
+}
+
+abstract class VmServiceExpectation {
+  bool get isRequest;
+}
+
+class FakeVmServiceRequest implements VmServiceExpectation {
+  const FakeVmServiceRequest({
+    @required this.method,
+    this.args = const <String, Object>{},
+    this.jsonResponse,
+    this.errorCode,
+    this.close = false,
+  });
+
+  final String method;
+
+  /// When true, the vm service is automatically closed.
+  final bool close;
+
+  /// If non-null, the error code for a [vm_service.RPCError] in place of a
+  /// standard response.
+  final int errorCode;
+  final Map<String, Object> args;
+  final Map<String, Object> jsonResponse;
+
+  @override
+  bool get isRequest => true;
+}
+
+class FakeVmServiceStreamResponse implements VmServiceExpectation {
+  const FakeVmServiceStreamResponse({
+    @required this.event,
+    @required this.streamId,
+  });
+
+  final vm_service.Event event;
+  final String streamId;
+
+  @override
+  bool get isRequest => false;
+}
+
+class TestFlutterCommandRunner extends FlutterCommandRunner {
+  @override
+  Future<void> runCommand(ArgResults topLevelResults) async {
+    final Logger topLevelLogger = globals.logger;
+    final Map<Type, dynamic> contextOverrides = <Type, dynamic>{
+      if (topLevelResults['verbose'] as bool)
+        Logger: VerboseLogger(topLevelLogger),
+    };
+    return context.run<void>(
+      overrides: contextOverrides.map<Type, Generator>((Type type, dynamic value) {
+        return MapEntry<Type, Generator>(type, () => value);
+      }),
+      body: () {
+        Cache.flutterRoot ??= Cache.defaultFlutterRoot(
+          platform: globals.platform,
+          fileSystem: globals.fs,
+          userMessages: UserMessages(),
+        );
+        // For compatibility with tests that set this to a relative path.
+        Cache.flutterRoot = globals.fs.path.normalize(globals.fs.path.absolute(Cache.flutterRoot));
+        return super.runCommand(topLevelResults);
+      }
+    );
+  }
+}
+
+/// A file system that allows preconfiguring certain entities.
+>>>>>>> 8962f6dc68ec8e2206ac2fa874da4a453856c7d3
 ///
 /// Example use:
 ///
